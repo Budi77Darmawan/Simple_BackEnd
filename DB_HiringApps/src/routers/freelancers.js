@@ -1,16 +1,14 @@
 const { Router } = require('express')
 const {
-  getFreelancers,
-  createFreelancers,
-  deleteFreelancers,
+  listFreelancers,
   updateFreelancers
 } = require('../controllers/freelancers')
+const { authorization, authorizationFreelancers } = require('../middleware/auth')
+const uploadImage = require('../middleware/multer')
 
 const router = Router()
 
-router.get('/', getFreelancers)
-router.post('/', createFreelancers)
-router.delete('/', deleteFreelancers)
-router.patch('/', updateFreelancers)
+router.get('/', authorization, listFreelancers)
+router.patch('/', authorizationFreelancers, uploadImage, updateFreelancers)
 
 module.exports = router

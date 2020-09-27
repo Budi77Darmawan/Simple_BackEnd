@@ -1,15 +1,14 @@
 const {
   checkExperienceModel,
-  getExperienceModel,
-  getExperienceByIDModel,
+  listExperienceModel,
   createExperienceModel,
-  deleteExperienceModel,
-  updateExperienceModel
+  updateExperienceModel,
+  deleteExperienceModel
 } = require('../models/experience')
 
 module.exports = {
-  getExperience: (req, res) => {
-    let { page, limit, search } = req.query
+  listExperience: async (req, res) => {
+    let { page, limit, search, sort, typeSort } = req.query
 
     let { searchKey, serachValue } = ''
 
@@ -17,7 +16,7 @@ module.exports = {
       searchKey = Object.keys(search)[0]
       serachValue = Object.values(search)[0]
     } else {
-      searchKey = 'companyName'
+      searchKey = 'P.name'
       serachValue = search || ''
     }
 
@@ -34,121 +33,95 @@ module.exports = {
 
     const offset = (page - 1) * limit
 
-    getExperienceModel(searchKey, serachValue, limit, offset, result => {
-      if (result.length) {
-        res.status(201).send({
-          success: true,
-          message: 'List Experience',
-          data: result
-        })
-      } else {
-        res.send({
-          success: true,
-          message: 'There is no experience on list'
-        })
-      }
-    })
-  },
-
-  getExperienceByID: (req, res) => {
-    const id = req.params.id
-    getExperienceByIDModel(id, result => {
-      if (result.length) {
-        res.send({
-          success: true,
-          message: `Experience account with id ${id}`,
-          data: result
-        })
-      } else {
-        res.send({
-          success: false,
-          message: `No experience found on account with ID ${id}!`
-        })
-      }
-    })
-  },
-
-  createExperience: (req, res) => {
-    const { companyName, position, start, end, description } = req.body
-    const { idAccount } = req.query
-
-    if (!idAccount) {
-      res.status(500).send({
-        success: false,
-        message: `Error ${idAccount}`
+    const list = await listExperienceModel(searchKey, serachValue, sort, typeSort, limit, offset)
+    if (list.length) {
+      res.status(201).send({
+        success: true,
+        message: 'List Experience',
+        data: list
       })
     } else {
-      if (companyName && position && start && end && description) {
-        createExperienceModel([idAccount, companyName, position, start, end, description], result => {
-          res.status(201).send({
-            success: true,
-            message: 'Experience has been created!'
-          })
-        })
-      } else {
-        res.status(500).send({
-          success: false,
-          message: 'All field must be filled!'
-        })
-      }
+      res.send({
+        success: true,
+        message: 'There is no List Expereince'
+      })
     }
   },
 
-  deleteExperience: (req, res) => {
-    const { idAccount, idExperience } = req.query
-    checkExperienceModel(idAccount, result => {
-      if (result.length) {
-        deleteExperienceModel(idExperience, idAccount, result => {
-          if (result.affectedRows) {
-            res.send({
-              success: true,
-              message: `Account id ${idAccount} with project id ${idExperience} has been delete!`
-            })
-          } else {
-            res.send({
-              success: false,
-              message: 'Failed to delete experience'
-            })
-          }
-        })
-      } else {
-        res.send({
-          success: false,
-          message: `Account id ${idAccount} with experience id ${idExperience} not found!`
-        })
+  createExperience: async (req, res) => {
+    try {
+      const { idAccount } = req.query
+      const setData = {
+        id_account: idAccount,
+        ...req.body
       }
-    })
+      await createExperienceModel(setData)
+      res.status(201).send({
+        success: true,
+        message: `Experience account id ${idAccount} has been created!`,
+        data: setData
+      })
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
+      })
+    }
   },
 
-  updateExperience: (req, res) => {
-    const { companyName, position, start, end, description } = req.body
-    const { idAccount, idExperience } = req.query
+  updateExperience: async (req, res) => {
+    try {
+      const idExp = req.params.id
+      const { idAccount } = req.query
+      const setData = {
+        ...req.body
+      }
+      const data = Object.entries(setData).map(item => {
+        return `${item[0]}='${item[1]}'`
+      })
+      const project = await checkExperienceModel(idAccount, idExp)
+      if (project.length) {
+        await updateExperienceModel(idExp, data)
+        res.status(201).send({
+          success: true,
+          message: 'Experience has been update!',
+          data: setData
+        })
+      } else {
+        res.status(401).send({
+          success: false,
+          message: 'Experience not found!'
+        })
+      }
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
+      })
+    }
+  },
 
-    if (companyName || position || start || end || description) {
-      checkExperienceModel(idAccount, result => {
-        if (result.length) {
-          const data = Object.entries(req.body).map(item => {
-            return `${item[0]}='${item[1]}'`
-          })
-          updateExperienceModel(idExperience, data, result => {
-            if (result.changedRows) {
-              res.status(201).send({
-                success: true,
-                message: `Account id ${idAccount} with experience id ${idExperience} has been update`
-              })
-            } else {
-              res.status(201).send({
-                success: false,
-                message: 'Nothing was update in experience!'
-              })
-            }
-          })
-        } else {
-          res.send({
-            success: false,
-            message: `Account id ${idAccount} with experience id ${idExperience} not found!`
-          })
-        }
+  deleteExperience: async (req, res) => {
+    try {
+      const idExp = req.params.id
+      const { idAccount } = req.query
+      const project = await checkExperienceModel(idAccount, idExp)
+      if (project.length) {
+        await deleteExperienceModel(idExp)
+        res.status(201).send({
+          success: true,
+          message: 'Experience has been delete!'
+        })
+      } else {
+        res.status(401).send({
+          success: false,
+          message: 'Experience not found!'
+        })
+      }
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
       })
     }
   }

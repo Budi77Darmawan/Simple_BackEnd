@@ -1,91 +1,57 @@
 const db = require('../helper/db')
 
 module.exports = {
-  checkAccountModel: (idAccount, callback, res) => {
-    db.query(`SELECT * FROM account WHERE id_account=${idAccount}`, (err, result, field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  checkAccountModel: (email) => {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT * FROM account WHERE email=?', email, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  checkEmailModel: (email, callback, res) => {
-    db.query(`SELECT * FROM account WHERE email='${email}'`, (err, result, field) => {
-      if (!err) {
-        callback(result)
+  registerAccountModel: (data) => {
+    return new Promise((resolve, reject) => {
+      db.query('BEGIN')
+      db.query('INSERT INTO account SET ?', data)
+      if (data.roleAccount === 'Freelancers') {
+        db.query('INSERT INTO freelancers (id_account) VALUES (LAST_INSERT_ID())')
       } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
+        db.query('INSERT INTO recruiters (id_account) VALUES (LAST_INSERT_ID())')
       }
+      db.query('COMMIT', (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  getAccountModel: (searchKey, serachValue, limit, offset, callback, res) => {
-    const getSql = `SELECT * FROM account WHERE ${searchKey} LIKE '%${serachValue}%' LIMIT ${limit} OFFSET ${offset}`
-    db.query(getSql, (err, result, _field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  updateAccountModel: (idAccount, data) => {
+    return new Promise((resolve, reject) => {
+      console.log(idAccount)
+      console.log(data)
+      db.query(`UPDATE account SET ${data}, updateAt=CURRENT_TIMESTAMP WHERE id_account=${idAccount}`, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  getAccountByIDModel: (idAccount, callback, res) => {
-    db.query(`SELECT * FROM account WHERE id_account=${idAccount}`, (err, result, field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
-    })
-  },
-  createAccountModel: (data, callback, res) => {
-    const postSql = `INSERT INTO account (typeAccount, name, email, numberPhone, password) VALUES ('${data[0]}', '${data[1]}', '${data[2]}', '${data[3]}', '${data[4]}')`
-    db.query(postSql, (err, result, _field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
-    })
-  },
-  deleteAccountModel: (idAccount, callback, res) => {
-    db.query(`DELETE FROM account WHERE id_account=${idAccount}`, (err, result, field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
-    })
-  },
-  updateAccountModel: (idAccount, data, callback, res) => {
-    const updateSql = `UPDATE account SET ${data}, updateAt=CURRENT_TIMESTAMP WHERE id_account=${idAccount}`
-    db.query(updateSql, (err, result, _field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  deleteAccountModel: (idAccount) => {
+    return new Promise((resolve, reject) => {
+      db.query('DELETE FROM account WHERE id_account=?', idAccount, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   }
 }

@@ -1,155 +1,129 @@
 const {
   checkAccountModel,
-  getAccountModel,
-  getAccountByIDModel,
-  createAccountModel,
-  deleteAccountModel,
+  registerAccountModel,
   updateAccountModel,
-  checkEmailModel
+  deleteAccountModel
 } = require('../models/account')
+const { postAuthModel } = require('../models/auth')
+const bcryipt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+require('dotenv')
 
 module.exports = {
-  getAccount: (req, res) => {
-    let { page, limit, search } = req.query
-
-    let { searchKey, serachValue } = ''
-
-    if (typeof search === 'object') {
-      searchKey = Object.keys(search)[0]
-      serachValue = Object.values(search)[0]
-    } else {
-      searchKey = 'name'
-      serachValue = search || ''
-    }
-
-    if (!limit) {
-      limit = 10
-    } else {
-      limit = parseInt(limit)
-    }
-    if (!page) {
-      page = 1
-    } else {
-      page = parseInt(page)
-    }
-
-    const offset = (page - 1) * limit
-
-    getAccountModel(searchKey, serachValue, limit, offset, result => {
-      if (result.length) {
-        res.status(201).send({
-          success: true,
-          message: 'List Account',
-          data: result
-        })
-      } else {
-        res.send({
-          success: true,
-          message: 'There is no account on list'
-        })
+  registerAccount: async (req, response) => {
+    const { roleAccount, name, email, numberPhone, password } = req.body
+    if (roleAccount && name && email && numberPhone && password) {
+      const salt = bcryipt.genSaltSync(12)
+      const encryptPassword = bcryipt.hashSync(password, salt)
+      const setData = {
+        roleAccount,
+        name,
+        email,
+        numberPhone,
+        password: encryptPassword
       }
-    })
-  },
-
-  getAccountByID: (req, res) => {
-    const id = req.params.id
-    getAccountByIDModel(id, result => {
-      if (result.length) {
-        res.send({
-          success: true,
-          message: `Data account with id ${id}`,
-          data: result
-        })
-      } else {
-        res.send({
-          success: false,
-          message: `Account with id ${id} not found!`
-        })
-      }
-    })
-  },
-
-  createAccount: (req, res) => {
-    const { typeAccount, name, email, numberPhone, password } = req.body
-    if (name && email && numberPhone && password) {
-      checkEmailModel(email, result => {
-        if (result.length) {
-          res.status(500).send({
+      try {
+        const check = await checkAccountModel(email)
+        if (!check.length) {
+          await registerAccountModel(setData)
+          response.send({
+            success: true,
+            message: 'Success register account',
+            data: { name, email }
+          })
+        } else {
+          response.send({
             success: false,
             message: 'Email has been registered!'
           })
-        } else {
-          createAccountModel([typeAccount, name, email, numberPhone, password], result => {
-            res.status(201).send({
-              success: true,
-              message: 'Account has been created!'
-            })
-          })
         }
-      })
+      } catch {
+        response.send({
+          success: false,
+          message: 'Bad request!'
+        })
+      }
     } else {
-      res.status(500).send({
+      response.status(500).send({
         success: false,
         message: 'All field must be filled!'
       })
     }
   },
 
-  deleteAccount: (req, res) => {
-    const id = req.params.id
-    checkAccountModel(id, result => {
-      if (result.length) {
-        deleteAccountModel(id, result => {
-          if (result.affectedRows) {
-            res.send({
-              success: true,
-              message: `Account with id ${id} has been delete!`
-            })
-          } else {
-            res.send({
-              success: false,
-              message: 'Failed to delete account'
-            })
-          }
-        })
-      } else {
-        res.send({
-          success: false,
-          message: `Account with id ${id} not found!`
-        })
-      }
-    })
-  },
-
-  updateAccount: (req, res) => {
-    const { name, email, numberPhone, password } = req.body
-    const id = req.params.id
-
-    if (name || email || numberPhone || password) {
-      checkAccountModel(id, result => {
-        if (result.length) {
-          const data = Object.entries(req.body).map(item => {
-            return `${item[0]}='${item[1]}'`
-          })
-          updateAccountModel(id, data, result => {
-            if (result.changedRows) {
-              res.status(201).send({
-                success: true,
-                message: `Account with id ${id} has been update`
-              })
-            } else {
-              res.status(201).send({
-                success: false,
-                message: 'Nothing was update in Account!'
-              })
-            }
+  loginAccount: async (req, response) => {
+    const { email, password } = req.body
+    if (email && password) {
+      const checkAccount = await checkAccountModel(email)
+      if (checkAccount.length) {
+        const checkPassword = bcryipt.compareSync(password, checkAccount[0].password)
+        if (checkPassword) {
+          const idAccount = checkAccount[0].id_account
+          const { name, roleAccount, email } = checkAccount[0]
+          let payload = { idAccount, name, roleAccount, email }
+          const token = jwt.sign(payload, process.env.KEY_JWT, { expiresIn: '1d' })
+          await postAuthModel(idAccount, token)
+          payload = { ...payload, token }
+          response.status(201).send({
+            success: true,
+            message: 'Success Login!',
+            data: payload
           })
         } else {
-          res.send({
+          response.status(400).send({
             success: false,
-            message: `Account with id ${id} not found!`
+            message: 'Wrong password!'
           })
         }
+      } else {
+        response.status(400).send({
+          success: false,
+          message: 'Email has not been registered!'
+        })
+      }
+    } else {
+      response.status(400).send({
+        success: false,
+        message: 'All field must be filled!'
+      })
+    }
+  },
+
+  updateAccount: async (req, res) => {
+    try {
+      const { idAccount } = req.query
+      const setData = {
+        ...req.body
+      }
+      const data = Object.entries(setData).map(item => {
+        return `${item[0]}='${item[1]}'`
+      })
+      await updateAccountModel(idAccount, data)
+      res.status(201).send({
+        success: true,
+        message: 'Account has been update!',
+        data: setData
+      })
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
+      })
+    }
+  },
+
+  deleteAccount: async (req, res) => {
+    try {
+      const { idAccount } = req.query
+      await deleteAccountModel(idAccount)
+      res.status(201).send({
+        success: true,
+        message: 'Account has been delete!'
+      })
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
       })
     }
   }

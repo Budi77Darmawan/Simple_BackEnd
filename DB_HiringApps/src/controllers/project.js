@@ -1,16 +1,14 @@
 const {
   checkProjectModel,
-  checkNameModel,
-  getProjectModel,
-  getProjectByIDModel,
+  listProjectModel,
   createProjectModel,
-  deleteProjectModel,
-  updateProjectModel
+  updateProjectModel,
+  deleteProjectModel
 } = require('../models/project')
 
 module.exports = {
-  getProject: (req, res) => {
-    let { page, limit, search } = req.query
+  listProject: async (req, res) => {
+    let { page, limit, search, sort, typeSort } = req.query
 
     let { searchKey, serachValue } = ''
 
@@ -18,7 +16,7 @@ module.exports = {
       searchKey = Object.keys(search)[0]
       serachValue = Object.values(search)[0]
     } else {
-      searchKey = 'name'
+      searchKey = 'P.name'
       serachValue = search || ''
     }
 
@@ -35,130 +33,97 @@ module.exports = {
 
     const offset = (page - 1) * limit
 
-    getProjectModel(searchKey, serachValue, limit, offset, result => {
-      if (result.length) {
-        res.status(201).send({
-          success: true,
-          message: 'List Project',
-          data: result
-        })
-      } else {
-        res.send({
-          success: true,
-          message: 'There is no project on list'
-        })
-      }
-    })
-  },
-
-  getProjectByID: (req, res) => {
-    const id = req.params.id
-    getProjectByIDModel(id, result => {
-      if (result.length) {
-        res.send({
-          success: true,
-          message: `Project account with id ${id}`,
-          data: result
-        })
-      } else {
-        res.send({
-          success: false,
-          message: `Project with id ${id} not found!`
-        })
-      }
-    })
-  },
-
-  createProject: (req, res) => {
-    const { name, image, description, deadline } = req.body
-    const { idAccount } = req.query
-
-    if (!idAccount) {
-      res.status(500).send({
-        success: false,
-        message: `Error ${idAccount}`
+    const list = await listProjectModel(searchKey, serachValue, sort, typeSort, limit, offset)
+    if (list.length) {
+      res.status(201).send({
+        success: true,
+        message: 'List Project',
+        data: list
       })
     } else {
-      if (name && image && description && deadline) {
-        checkNameModel(name, result => {
-          if (result.length) {
-            res.status(500).send({
-              success: false,
-              message: 'Name Project has been registered!'
-            })
-          } else {
-            createProjectModel([idAccount, name, image, description, deadline], result => {
-              res.status(201).send({
-                success: true,
-                message: 'Project has been created!'
-              })
-            })
-          }
-        })
-      } else {
-        res.status(500).send({
-          success: false,
-          message: 'All field must be filled!'
-        })
-      }
+      res.send({
+        success: true,
+        message: 'There is no List Project'
+      })
     }
   },
 
-  deleteProject: (req, res) => {
-    const { idAccount, idProject } = req.query
-    checkProjectModel(idAccount, idProject, result => {
-      if (result.length) {
-        deleteProjectModel(idProject, result => {
-          if (result.affectedRows) {
-            res.send({
-              success: true,
-              message: `Account id ${idAccount} with project id ${idProject} has been delete!`
-            })
-          } else {
-            res.send({
-              success: false,
-              message: 'Failed to delete project'
-            })
-          }
-        })
-      } else {
-        res.send({
-          success: false,
-          message: `Account id ${idAccount} with project id ${idProject} not found!`
-        })
+  createProject: async (req, res) => {
+    try {
+      const { idAccount } = req.query
+      const setData = {
+        id_account: idAccount,
+        ...req.body,
+        image: req.file.filename
       }
-    })
+      await createProjectModel(setData)
+      res.status(201).send({
+        success: true,
+        message: `Project account id ${idAccount} has been create!`,
+        data: setData
+      })
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
+      })
+    }
   },
 
-  updateProject: (req, res) => {
-    const { name, image, description, deadline } = req.body
-    const { idAccount, idProject } = req.query
-    console.log(`${idAccount}, ${idProject}`)
-    if (name || image || description || deadline) {
-      checkProjectModel(idAccount, idProject, result => {
-        if (result.length) {
-          const data = Object.entries(req.body).map(item => {
-            return `${item[0]}='${item[1]}'`
-          })
-          updateProjectModel(idProject, data, result => {
-            if (result.changedRows) {
-              res.status(201).send({
-                success: true,
-                message: `Account id ${idAccount} with project id ${idProject} has been update`
-              })
-            } else {
-              res.status(201).send({
-                success: false,
-                message: 'Nothing was update in project!'
-              })
-            }
-          })
-        } else {
-          res.send({
-            success: false,
-            message: `Account id ${idAccount} with project id ${idProject} not found!`
-          })
-        }
+  updateProject: async (req, res) => {
+    try {
+      const idProject = req.params.id
+      const { idAccount } = req.query
+      const setData = {
+        ...req.body,
+        image: req.file.filename
+      }
+      const data = Object.entries(setData).map(item => {
+        return `${item[0]}='${item[1]}'`
+      })
+      const project = await checkProjectModel(idAccount, idProject)
+      if (project.length) {
+        await updateProjectModel(idProject, data)
+        res.status(201).send({
+          success: true,
+          message: 'Project has been update!',
+          data: setData
+        })
+      } else {
+        res.status(401).send({
+          success: false,
+          message: 'Project not found!'
+        })
+      }
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
+      })
+    }
+  },
+
+  deleteProject: async (req, res) => {
+    try {
+      const idProject = req.params.id
+      const { idAccount } = req.query
+      const project = await checkProjectModel(idAccount, idProject)
+      if (project.length) {
+        await deleteProjectModel(idProject)
+        res.status(201).send({
+          success: true,
+          message: 'Project has been delete!'
+        })
+      } else {
+        res.status(401).send({
+          success: false,
+          message: 'Project not found!'
+        })
+      }
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: 'Bad request'
       })
     }
   }

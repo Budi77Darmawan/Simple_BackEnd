@@ -1,91 +1,72 @@
 const db = require('../helper/db')
 
 module.exports = {
-  checkProjectModel: (idAccount, idProject, callback, res) => {
-    db.query(`SELECT * FROM project WHERE id_account=${idAccount} AND id_project=${idProject}`, (err, result, field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  checkProjectModel: (idAccount, idProject) => {
+    return new Promise((resolve, reject) => {
+      db.query(`SELECT * FROM project WHERE id_project=${idProject} && id_account=${idAccount}`, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  checkNameModel: (name, callback, res) => {
-    db.query(`SELECT * FROM project WHERE name='${name}'`, (err, result, field) => {
-      if (!err) {
-        callback(result)
+
+  listProjectModel: (searchKey, searchValue, sort, typeSort, limit, offset) => {
+    return new Promise((resolve, reject) => {
+      let order = ''
+      if (sort) {
+        order = `ORDER BY ${sort}`
       } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
+        order = 'ORDER BY id_account'
       }
+      if (typeSort) {
+        order += ` ${typeSort}`
+      } else {
+        order += ' ASC'
+      }
+
+      db.query(`SELECT P.id_project, A.id_account, A.name, R.position, R.companyName, R.city, P.name AS name_project, P.description, P.deadline FROM account AS A INNER JOIN recruiters AS R ON A.id_account = R.id_account INNER JOIN project AS P ON R.id_account = P.id_account WHERE ${searchKey} LIKE '%${searchValue}%' ${order} LIMIT ${limit} OFFSET ${offset} `, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  getProjectModel: (searchKey, serachValue, limit, offset, callback, res) => {
-    const getSql = `SELECT * FROM project WHERE ${searchKey} LIKE '%${serachValue}%' LIMIT ${limit} OFFSET ${offset}`
-    db.query(getSql, (err, result, _field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  createProjectModel: (data) => {
+    return new Promise((resolve, reject) => {
+      db.query('INSERT INTO project SET ?', data, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  getProjectByIDModel: (idProject, callback, res) => {
-    db.query(`SELECT * FROM project WHERE id_project=${idProject}`, (err, result, field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  updateProjectModel: (idProject, data) => {
+    return new Promise((resolve, reject) => {
+      db.query(`UPDATE project SET ${data}, updateAt=CURRENT_TIMESTAMP WHERE id_project=${idProject}`, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   },
-  createProjectModel: (data, callback, res) => {
-    const postSql = `INSERT INTO project (id_account, name, image, description, deadline) VALUES ('${data[0]}', '${data[1]}', '${data[2]}', '${data[3]}', '${data[4]}')`
-    db.query(postSql, (err, result, _field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
-    })
-  },
-  deleteProjectModel: (idProject, callback, res) => {
-    db.query(`DELETE FROM project WHERE id_project=${idProject}`, (err, result, field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
-    })
-  },
-  updateProjectModel: (idProject, data, callback, res) => {
-    const updateSql = `UPDATE project SET ${data}, updateAt=CURRENT_TIMESTAMP WHERE id_project=${idProject}`
-    db.query(updateSql, (err, result, _field) => {
-      if (!err) {
-        callback(result)
-      } else {
-        res.send({
-          success: false,
-          message: 'Internal server error' + err
-        })
-      }
+  deleteProjectModel: (idProject) => {
+    return new Promise((resolve, reject) => {
+      db.query(`DELETE FROM project WHERE id_project=${idProject}`, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
     })
   }
 }

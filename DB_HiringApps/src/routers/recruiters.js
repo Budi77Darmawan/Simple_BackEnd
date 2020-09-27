@@ -1,16 +1,14 @@
 const { Router } = require('express')
 const {
-  getRecruiters,
-  createRecruiters,
-  deleteRecruiters,
+  listRecruiters,
   updateRecruiters
 } = require('../controllers/recruiters')
+const { authorization, authorizationRecruiters } = require('../middleware/auth')
+const uploadImage = require('../middleware/multer')
 
 const router = Router()
 
-router.get('/', getRecruiters)
-router.post('/', createRecruiters)
-router.delete('/', deleteRecruiters)
-router.patch('/', updateRecruiters)
+router.get('/', authorization, listRecruiters)
+router.patch('/', authorizationRecruiters, uploadImage, updateRecruiters)
 
 module.exports = router

@@ -1,18 +1,18 @@
 const { Router } = require('express')
 const {
-  getProject,
-  getProjectByID,
+  listProject,
   createProject,
-  deleteProject,
-  updateProject
+  updateProject,
+  deleteProject
 } = require('../controllers/project')
+const { authorization, authorizationRecruiters } = require('../middleware/auth')
+const uploadImage = require('../middleware/multer')
 
 const router = Router()
 
-router.get('/', getProject)
-router.get('/:id', getProjectByID)
-router.post('/', createProject)
-router.delete('/', deleteProject)
-router.patch('/', updateProject)
+router.get('/', authorization, listProject)
+router.post('/', authorizationRecruiters, uploadImage, createProject)
+router.patch('/:id', authorizationRecruiters, uploadImage, updateProject)
+router.delete('/:id', authorizationRecruiters, deleteProject)
 
 module.exports = router
