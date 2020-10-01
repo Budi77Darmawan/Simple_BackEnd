@@ -22,6 +22,7 @@ app.use('/portofolio', portofolioRouter)
 app.use('/skill', skillRouter)
 app.use('/hireproject', hireprojectRouter)
 app.use(cors())
+app.use('/images', express.static('src/uploads'))
 
 app.use((req, response, next) => {
   response.header('Acces-Control-Allow-Origin', '*')

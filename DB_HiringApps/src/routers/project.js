@@ -1,6 +1,7 @@
 const { Router } = require('express')
 const {
   listProject,
+  listProjectbyID,
   createProject,
   updateProject,
   deleteProject
@@ -11,6 +12,7 @@ const uploadImage = require('../middleware/multer')
 const router = Router()
 
 router.get('/', authorization, listProject)
+router.get('/:id', authorization, listProjectbyID)
 router.post('/', authorizationRecruiters, uploadImage, createProject)
 router.patch('/:id', authorizationRecruiters, uploadImage, updateProject)
 router.delete('/:id', authorizationRecruiters, deleteProject)

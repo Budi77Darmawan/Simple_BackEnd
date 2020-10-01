@@ -12,14 +12,14 @@ module.exports = {
       })
     })
   },
-  registerAccountModel: (data) => {
+  registerAccountModel: (data, company, position) => {
     return new Promise((resolve, reject) => {
       db.query('BEGIN')
       db.query('INSERT INTO account SET ?', data)
       if (data.roleAccount === 'Freelancers') {
         db.query('INSERT INTO freelancers (id_account) VALUES (LAST_INSERT_ID())')
       } else {
-        db.query('INSERT INTO recruiters (id_account) VALUES (LAST_INSERT_ID())')
+        db.query(`INSERT INTO recruiters (id_account, companyName, position) VALUES (LAST_INSERT_ID(), '${company}', '${position}')`)
       }
       db.query('COMMIT', (error, result) => {
         if (!error) {

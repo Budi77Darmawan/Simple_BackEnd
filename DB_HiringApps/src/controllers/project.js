@@ -1,10 +1,12 @@
 const {
   checkProjectModel,
   listProjectModel,
+  listProjectbyIDModel,
   createProjectModel,
   updateProjectModel,
   deleteProjectModel
 } = require('../models/project')
+const jwt = require('jsonwebtoken')
 
 module.exports = {
   listProject: async (req, res) => {
@@ -48,24 +50,85 @@ module.exports = {
     }
   },
 
-  createProject: async (req, res) => {
-    try {
-      const { idAccount } = req.query
-      const setData = {
-        id_account: idAccount,
-        ...req.body,
-        image: req.file.filename
-      }
-      await createProjectModel(setData)
+  listProjectbyID: async (req, res) => {
+    const idAccount = req.params.id
+    let { page, limit, search, sort, typeSort } = req.query
+    let { searchKey, serachValue } = ''
+
+    if (typeof search === 'object') {
+      searchKey = Object.keys(search)[0]
+      serachValue = Object.values(search)[0]
+    } else {
+      searchKey = 'P.name'
+      serachValue = search || ''
+    }
+
+    if (!limit) {
+      limit = 10
+    } else {
+      limit = parseInt(limit)
+    }
+    if (!page) {
+      page = 1
+    } else {
+      page = parseInt(page)
+    }
+
+    const offset = (page - 1) * limit
+
+    const list = await listProjectbyIDModel(searchKey, serachValue, idAccount, sort, typeSort, limit, offset)
+    if (list.length) {
       res.status(201).send({
         success: true,
-        message: `Project account id ${idAccount} has been create!`,
-        data: setData
+        message: 'List Project',
+        data: list
       })
-    } catch (error) {
-      res.status(500).send({
+    } else {
+      res.send({
+        success: true,
+        message: 'There is no List Project'
+      })
+    }
+  },
+
+  createProject: async (req, res) => {
+    const { name, image, description, deadline } = req.body
+    let idAccount = ''
+    if (name.trim() && image.trim() && description.trim() && deadline.trim()) {
+      try {
+        const token = req.headers.authorization.split(' ')[1]
+        jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+          if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+            response.status(403).send({
+              success: false,
+              message: error.message
+            })
+          } else {
+            idAccount = result.idAccount
+          }
+        })
+
+        const setData = {
+          id_account: idAccount,
+          ...req.body,
+          image: req.file.filename
+        }
+        await createProjectModel(setData)
+        res.status(201).send({
+          success: true,
+          message: `Project account id ${idAccount} has been create!`,
+          data: setData
+        })
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: 'Bad request'
+        })
+      }
+    } else {
+      res.status(401).send({
         success: false,
-        message: 'Bad request'
+        message: 'All field must be filled!'
       })
     }
   },
@@ -73,7 +136,18 @@ module.exports = {
   updateProject: async (req, res) => {
     try {
       const idProject = req.params.id
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const setData = {
         ...req.body,
         image: req.file.filename
@@ -106,7 +180,18 @@ module.exports = {
   deleteProject: async (req, res) => {
     try {
       const idProject = req.params.id
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const project = await checkProjectModel(idAccount, idProject)
       if (project.length) {
         await deleteProjectModel(idProject)

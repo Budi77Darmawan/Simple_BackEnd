@@ -4,14 +4,13 @@ const {
   updateAccountModel,
   deleteAccountModel
 } = require('../models/account')
-const { postAuthModel } = require('../models/auth')
 const bcryipt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 require('dotenv')
 
 module.exports = {
   registerAccount: async (req, response) => {
-    const { roleAccount, name, email, numberPhone, password } = req.body
+    const { roleAccount, name, email, numberPhone, password, companyName, position } = req.body
     if (roleAccount && name && email && numberPhone && password) {
       const salt = bcryipt.genSaltSync(12)
       const encryptPassword = bcryipt.hashSync(password, salt)
@@ -25,7 +24,7 @@ module.exports = {
       try {
         const check = await checkAccountModel(email)
         if (!check.length) {
-          await registerAccountModel(setData)
+          await registerAccountModel(setData, companyName, position)
           response.send({
             success: true,
             message: 'Success register account',
@@ -59,10 +58,9 @@ module.exports = {
         const checkPassword = bcryipt.compareSync(password, checkAccount[0].password)
         if (checkPassword) {
           const idAccount = checkAccount[0].id_account
-          const { name, roleAccount, email } = checkAccount[0]
-          let payload = { idAccount, name, roleAccount, email }
+          const { name, roleAccount, email, status } = checkAccount[0]
+          let payload = { idAccount, name, roleAccount, email, status }
           const token = jwt.sign(payload, process.env.KEY_JWT, { expiresIn: '1d' })
-          await postAuthModel(idAccount, token)
           payload = { ...payload, token }
           response.status(201).send({
             success: true,
@@ -70,13 +68,13 @@ module.exports = {
             data: payload
           })
         } else {
-          response.status(400).send({
+          response.status(201).send({
             success: false,
             message: 'Wrong password!'
           })
         }
       } else {
-        response.status(400).send({
+        response.status(201).send({
           success: false,
           message: 'Email has not been registered!'
         })
@@ -91,7 +89,18 @@ module.exports = {
 
   updateAccount: async (req, res) => {
     try {
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const setData = {
         ...req.body
       }
@@ -114,7 +123,18 @@ module.exports = {
 
   deleteAccount: async (req, res) => {
     try {
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       await deleteAccountModel(idAccount)
       res.status(201).send({
         success: true,

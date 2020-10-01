@@ -3,11 +3,23 @@ const {
   updateSkillModel,
   deleteSkillModel
 } = require('../models/skill')
+const jwt = require('jsonwebtoken')
 
 module.exports = {
   addSkill: async (req, res) => {
     try {
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const setData = {
         id_account: idAccount,
         ...req.body
@@ -29,8 +41,19 @@ module.exports = {
   updateSkill: async (req, res) => {
     try {
       const idSkillFE = req.params.id
-      const { idAccount } = req.query
       const { idSkill } = req.body
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const setData = {
         id_account: idAccount,
         id_skill: idSkill
@@ -54,8 +77,19 @@ module.exports = {
 
   deleteSkill: async (req, res) => {
     try {
-      const { idAccount } = req.query
       const { idSkill } = req.body
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       await deleteSkillModel(idAccount, idSkill)
       res.status(201).send({
         success: true,

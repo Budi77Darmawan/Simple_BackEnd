@@ -1,13 +1,11 @@
 require('dotenv')
 const jwt = require('jsonwebtoken')
-const { getAuthModel } = require('../models/auth')
 
 module.exports = {
   authorizationRecruiters: async (req, response, next) => {
-    const { idAccount } = req.query
-    const token = await getAuthModel(idAccount)
-
+    let token = req.headers.authorization
     if (token) {
+      token = token.split(' ')[1]
       jwt.verify(token, process.env.KEY_JWT, (error, result) => {
         if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
           response.status(403).send({
@@ -25,13 +23,17 @@ module.exports = {
           }
         }
       })
+    } else {
+      response.status(403).send({
+        success: false,
+        message: 'Please input token!!!'
+      })
     }
   },
   authorizationFreelancers: async (req, response, next) => {
-    const { idAccount } = req.query
-    const token = await getAuthModel(idAccount)
-
+    let token = req.headers.authorization
     if (token) {
+      token = token.split(' ')[1]
       jwt.verify(token, process.env.KEY_JWT, (error, result) => {
         if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
           response.status(403).send({
@@ -49,13 +51,17 @@ module.exports = {
           }
         }
       })
+    } else {
+      response.status(403).send({
+        success: false,
+        message: 'Please input token!!!'
+      })
     }
   },
   authorization: async (req, response, next) => {
-    const { idAccount } = req.query
-    const token = await getAuthModel(idAccount)
-
+    let token = req.headers.authorization
     if (token) {
+      token = token.split(' ')[1]
       jwt.verify(token, process.env.KEY_JWT, (error, result) => {
         if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
           response.status(403).send({
@@ -65,6 +71,11 @@ module.exports = {
         } else {
           next()
         }
+      })
+    } else {
+      response.status(403).send({
+        success: false,
+        message: 'Please input token!!!'
       })
     }
   }

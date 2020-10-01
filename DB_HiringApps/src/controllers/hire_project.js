@@ -3,13 +3,25 @@ const {
   updateHireProjectModel,
   deleteHireProjectModel
 } = require('../models/hire_project')
-const { getAuthModel } = require('../models/auth')
 const jwt = require('jsonwebtoken')
 
 module.exports = {
   createHireProject: async (req, res) => {
     try {
-      const { idAccount, idProject } = req.query
+      const { idProject } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
+
       const setData = {
         id_accountRec: idAccount,
         id_project: idProject,
@@ -32,15 +44,11 @@ module.exports = {
   updateHireProject: async (req, res) => {
     try {
       const idHireProject = req.params.id
-      const { idAccount, idProject } = req.query
+      const { idProject } = req.query
       const { message, projectJob, price, statusConfirm } = req.body
 
-      let setData = {
-        id_account: idAccount,
-        id_project: idProject
-      }
-
-      const token = await getAuthModel(idAccount)
+      let setData = {}
+      const token = req.headers.authorization.split(' ')[1]
       if (token) {
         jwt.verify(token, process.env.KEY_JWT, (error, result, res) => {
           if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
@@ -49,9 +57,19 @@ module.exports = {
               message: error.message
             })
           } else {
-            if (result.roleAccount === 'Recruiters') {
+            if (result.roleAccount === 'Superuser') {
               setData = {
-                id_account: idAccount,
+                id_account: result.idAccount,
+                id_project: idProject,
+                message,
+                projectJob,
+                price,
+                statusConfirm,
+                confirmDate: new Date()
+              }
+            } else if (result.roleAccount === 'Recruiters') {
+              setData = {
+                id_account: result.idAccount,
                 id_project: idProject,
                 message,
                 projectJob,
@@ -59,7 +77,7 @@ module.exports = {
               }
             } else {
               setData = {
-                id_account: idAccount,
+                id_account: result.idAccount,
                 id_project: idProject,
                 statusConfirm,
                 confirmDate: new Date()

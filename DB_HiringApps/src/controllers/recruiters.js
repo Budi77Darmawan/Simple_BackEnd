@@ -2,6 +2,7 @@ const {
   listRecruitersModel,
   updateRecruitersModel
 } = require('../models/recruiters')
+const jwt = require('jsonwebtoken')
 
 module.exports = {
   listRecruiters: async (req, res) => {
@@ -47,11 +48,31 @@ module.exports = {
 
   updateRecruiters: async (req, res) => {
     try {
-      const { idAccount } = req.query
-      const setData = {
-        ...req.body,
-        image: req.file.filename
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
+
+      let setData = {}
+      if (req.file) {
+        setData = {
+          ...req.body,
+          image: req.file.filename
+        }
+      } else {
+        setData = {
+          ...req.body
+        }
       }
+
       const data = Object.entries(setData).map(item => {
         return `${item[0]}='${item[1]}'`
       })
