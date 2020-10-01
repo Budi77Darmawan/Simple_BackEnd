@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 27 Sep 2020 pada 16.37
+-- Waktu pembuatan: 01 Okt 2020 pada 15.12
 -- Versi server: 10.4.11-MariaDB
 -- Versi PHP: 7.2.28
 
@@ -37,19 +37,21 @@ CREATE TABLE `account` (
   `password` text NOT NULL,
   `status` int(11) NOT NULL DEFAULT 1,
   `createdAt` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updateAt` timestamp NULL DEFAULT NULL,
-  `auth` text DEFAULT NULL
+  `updateAt` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data untuk tabel `account`
 --
 
-INSERT INTO `account` (`id_account`, `roleAccount`, `name`, `email`, `numberPhone`, `password`, `status`, `createdAt`, `updateAt`, `auth`) VALUES
-(35, 'Freelancers', 'Juanda', 'juandaa@gmail.com', '0000000000000', '$2a$12$jbiQB4fMRTPK5/UzyJ5KoOyrjO3wfSGG5k9c6pw7oF7FIueMmgLea', 1, '2020-09-23 10:06:49', NULL, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZEFjY291bnQiOjM1LCJuYW1lIjoiSnVhbmRhIiwicm9sZUFjY291bnQiOiJGcmVlbGFuY2VycyIsImVtYWlsIjoianVhbmRhYUBnbWFpbC5jb20iLCJpYXQiOjE2MDExNzQyOTUsImV4cCI6MTYwMTI2MDY5NX0.Jr3A7abQ2jJ7R3eF9-X-sKWlvYO-CxITHVkyPk2AGMo'),
-(43, 'Recruiters', 'Jaya', 'jaya@gmail.com', '0000000000000', '$2a$12$53CFqTrLzqOdmkPxE7U8/OekTStrg2wCA7Kx3j5NdfRCsSBZkBEjy', 1, '2020-09-25 09:37:24', '2020-09-25 14:49:41', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZEFjY291bnQiOjQzLCJuYW1lIjoiSmF5YSIsInJvbGVBY2NvdW50IjoiUmVjcnVpdGVycyIsImVtYWlsIjoiamF5YUBnbWFpbC5jb20iLCJpYXQiOjE2MDExNzM4MDksImV4cCI6MTYwMTI2MDIwOX0.ucKmSBQ9pnwlxEZTkmUfehd2FFjLJzyDw6rHaC0ZIzQ'),
-(47, 'Freelancers', 'Dicky', 'dicky@gmail.com', '0000000000000', '$2a$12$Q.KqSE5jGeIG1R9SO3Qqd.OM0rdsFMHFbaZ9Xqz/rziiYLa38BN/y', 1, '2020-09-26 05:10:42', NULL, NULL),
-(48, 'Freelancers', 'Eca', 'eca@gmail.com', '0000000000000', '$2a$12$xLbEJde6cOQI.JLLro46KeVgT.S7WhxT7LP4JJw.OG6K8RMtCbGiS', 1, '2020-09-26 05:10:58', NULL, NULL);
+INSERT INTO `account` (`id_account`, `roleAccount`, `name`, `email`, `numberPhone`, `password`, `status`, `createdAt`, `updateAt`) VALUES
+(35, 'Freelancers', 'Juanda', 'juanda@gmail.com', '0000000000000', '$2a$12$jbiQB4fMRTPK5/UzyJ5KoOyrjO3wfSGG5k9c6pw7oF7FIueMmgLea', 1, '2020-09-23 10:06:49', NULL),
+(43, 'Recruiters', 'Jaya', 'jaya@gmail.com', '0000000000000', '$2a$12$53CFqTrLzqOdmkPxE7U8/OekTStrg2wCA7Kx3j5NdfRCsSBZkBEjy', 1, '2020-09-25 09:37:24', '2020-09-25 14:49:41'),
+(47, 'Freelancers', 'Dicky', 'dicky@gmail.com', '0000000000000', '$2a$12$Q.KqSE5jGeIG1R9SO3Qqd.OM0rdsFMHFbaZ9Xqz/rziiYLa38BN/y', 1, '2020-09-26 05:10:42', NULL),
+(48, 'Freelancers', 'Eca', 'eca@gmail.com', '0000000000000', '$2a$12$xLbEJde6cOQI.JLLro46KeVgT.S7WhxT7LP4JJw.OG6K8RMtCbGiS', 1, '2020-09-26 05:10:58', NULL),
+(51, 'Recruiters', 'Budi Darmawan', 'budi@gmail.com', '0000000000000', '$2a$12$M65JN1k/4N8YxeVNgOIwKuiD.4lRO3qzKD9CVK/0oPzN/pcJ1bKg2', 1, '2020-10-01 06:53:18', NULL),
+(52, 'Freelancers', 'Free', 'free@gmail.com', '0000000000000', '$2a$12$5eLBeHjqmFqw3uUDNuPWwOFKCaI1tRW04j6KUTeIpizW66EtzV2Qe', 1, '2020-10-01 06:54:15', NULL),
+(53, 'Recruiters', 'Joko', 'joko@gmail.com', '1234512334', '$2a$12$oLhhPJETuQoESAvR7AqLDeOOIVyUVDG5tfPipHgRecIq3Dbj6zbbu', 1, '2020-10-01 07:25:51', NULL);
 
 -- --------------------------------------------------------
 
@@ -75,9 +77,10 @@ CREATE TABLE `freelancers` (
 --
 
 INSERT INTO `freelancers` (`id_freelancer`, `id_account`, `jobDesc`, `statusJob`, `description`, `workPlace`, `cityAddress`, `image`, `createdAt`, `updateAt`) VALUES
-(17, 35, 'IOS Developer', 'Full Time', 'deksripsi', 'Jakarta', 'Jakarta', 'image-1601174481352.jpg', '2020-09-23 13:10:49', '2020-09-27 02:41:21'),
+(17, 35, 'IOS Developer', 'Full Time', 'deksripsi', 'Jakarta', 'Jakarta', 'image-1601359091258.jpg', '2020-09-23 13:10:49', '2020-09-29 05:58:55'),
 (23, 47, 'Android Developer', 'Part Time', NULL, 'Malang', 'Malang', NULL, '2020-09-26 05:10:42', NULL),
-(24, 48, 'Web Developer', 'Freelancers', NULL, 'Yogyakarta', 'Yogyakarta', NULL, '2020-09-26 05:10:58', NULL);
+(24, 48, 'Web Developer', 'Freelancers', NULL, 'Yogyakarta', 'Yogyakarta', NULL, '2020-09-26 05:10:58', NULL),
+(25, 52, NULL, NULL, NULL, NULL, NULL, NULL, '2020-10-01 06:54:15', NULL);
 
 -- --------------------------------------------------------
 
@@ -139,7 +142,9 @@ CREATE TABLE `project` (
 --
 
 INSERT INTO `project` (`id_project`, `id_account`, `name`, `image`, `description`, `deadline`, `createdAt`, `updateAt`) VALUES
-(15, 43, 'Free Fire', 'image-1601176227003.png', 'BOOYAH!!!', '2021-01-01', '2020-09-27 11:10:27', NULL);
+(15, 43, 'Free Fire', 'image-1601176227003.png', 'BOOYAH!!!', '2021-01-01', '2020-09-27 11:10:27', NULL),
+(16, 43, 'PUBG', 'image-1601176227003.png', 'WWCD!!!', '2021-01-01', '2020-09-27 11:10:27', NULL),
+(17, 43, 'POU', 'image-1601176227003.png', 'Zaman Old', '2021-01-01', '2020-09-27 11:10:27', NULL);
 
 -- --------------------------------------------------------
 
@@ -166,7 +171,9 @@ CREATE TABLE `recruiters` (
 --
 
 INSERT INTO `recruiters` (`id_recruiter`, `id_account`, `companyName`, `position`, `sector`, `city`, `description`, `website`, `image`, `createdAt`, `updateAt`) VALUES
-(5, 43, 'PT. Cahaya Abadi', 'HRD', 'Financial', 'Nunukan', 'deskripsi', 'www.cahayaabadi.com', '', '2020-09-25 09:37:24', '2020-09-26 08:58:00');
+(5, 43, 'PT. Cahaya Abadi', 'HRD', 'Financial', 'Nunukan', 'deskripsi', 'www.cahayaabadi.com', 'image-1601356794473.jpg', '2020-09-25 09:37:24', '2020-09-29 05:20:42'),
+(9, 51, 'PT. Cahaya Abadi', 'HRD', NULL, NULL, NULL, NULL, NULL, '2020-10-01 06:53:18', NULL),
+(10, 53, 'PT. Abu Abu', 'CEO', NULL, NULL, NULL, NULL, NULL, '2020-10-01 07:25:51', NULL);
 
 -- --------------------------------------------------------
 
@@ -327,13 +334,13 @@ ALTER TABLE `work_exp`
 -- AUTO_INCREMENT untuk tabel `account`
 --
 ALTER TABLE `account`
-  MODIFY `id_account` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
+  MODIFY `id_account` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT untuk tabel `freelancers`
 --
 ALTER TABLE `freelancers`
-  MODIFY `id_freelancer` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id_freelancer` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT untuk tabel `hire_project`
@@ -351,13 +358,13 @@ ALTER TABLE `portofolio`
 -- AUTO_INCREMENT untuk tabel `project`
 --
 ALTER TABLE `project`
-  MODIFY `id_project` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_project` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT untuk tabel `recruiters`
 --
 ALTER TABLE `recruiters`
-  MODIFY `id_recruiter` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_recruiter` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `skill`
