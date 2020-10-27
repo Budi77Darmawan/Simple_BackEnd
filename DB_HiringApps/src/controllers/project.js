@@ -92,9 +92,9 @@ module.exports = {
   },
 
   createProject: async (req, res) => {
-    const { name, image, description, deadline } = req.body
+    const { name, description, deadline } = req.body
     let idAccount = ''
-    if (name.trim() && image.trim() && description.trim() && deadline.trim()) {
+    if (name.trim() && description.trim() && deadline.trim()) {
       try {
         const token = req.headers.authorization.split(' ')[1]
         jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
@@ -116,7 +116,7 @@ module.exports = {
         await createProjectModel(setData)
         res.status(201).send({
           success: true,
-          message: `Project account id ${idAccount} has been create!`,
+          message: 'Project has been created!',
           data: setData
         })
       } catch (error) {
@@ -148,13 +148,22 @@ module.exports = {
           idAccount = result.idAccount
         }
       })
-      const setData = {
-        ...req.body,
-        image: req.file.filename
+
+      let setData = {}
+      if (req.file) {
+        setData = {
+          ...req.body,
+          image: req.file.filename
+        }
+      } else {
+        setData = {
+          ...req.body
+        }
       }
       const data = Object.entries(setData).map(item => {
         return `${item[0]}='${item[1]}'`
       })
+
       const project = await checkProjectModel(idAccount, idProject)
       if (project.length) {
         await updateProjectModel(idProject, data)
@@ -195,7 +204,7 @@ module.exports = {
       const project = await checkProjectModel(idAccount, idProject)
       if (project.length) {
         await deleteProjectModel(idProject)
-        res.status(201).send({
+        res.send({
           success: true,
           message: 'Project has been delete!'
         })

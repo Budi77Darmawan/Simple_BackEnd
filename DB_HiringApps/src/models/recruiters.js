@@ -27,7 +27,7 @@ module.exports = {
         order += ' ASC'
       }
 
-      db.query(`SELECT A.id_account, A.name, R.companyName, R.position, R.sector, R.city FROM account AS A INNER JOIN recruiters AS R ON A.id_account = R.id_account WHERE ${searchKey} LIKE '%${searchValue}%' AND ${filter} ${order} LIMIT ${limit} OFFSET ${offset} `, (error, result) => {
+      db.query(`SELECT A.id_account, A.name, R.companyName, R.position, R.sector, R.city, R.description, R.website, R.image FROM account AS A INNER JOIN recruiters AS R ON A.id_account = R.id_account WHERE ${searchKey} LIKE '%${searchValue}%' AND ${filter} ${order} LIMIT ${limit} OFFSET ${offset} `, (error, result) => {
         if (!error) {
           resolve(result)
         } else {
@@ -36,6 +36,19 @@ module.exports = {
       })
     })
   },
+
+  listRecruitersbyIDModel: (idAccount) => {
+    return new Promise((resolve, reject) => {
+      db.query(`SELECT A.id_account, A.name, R.companyName, R.position, R.sector, R.city, R.description, R.website, R.image FROM account AS A INNER JOIN recruiters AS R ON A.id_account = R.id_account WHERE A.id_account = ${idAccount} `, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
+    })
+  },
+
   updateRecruitersModel: (idAccount, data) => {
     return new Promise((resolve, reject) => {
       db.query(`UPDATE recruiters SET ${data}, updateAt=CURRENT_TIMESTAMP WHERE id_account=${idAccount}`, (error, result) => {

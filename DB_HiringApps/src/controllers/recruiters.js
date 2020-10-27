@@ -1,5 +1,6 @@
 const {
   listRecruitersModel,
+  listRecruitersbyIDModel,
   updateRecruitersModel
 } = require('../models/recruiters')
 const jwt = require('jsonwebtoken')
@@ -36,6 +37,24 @@ module.exports = {
       res.status(201).send({
         success: true,
         message: 'List Recruiters',
+        data: list
+      })
+    } else {
+      res.send({
+        success: true,
+        message: 'There is no List Recruiters'
+      })
+    }
+  },
+
+  listRecruitersbyID: async (req, res) => {
+    const idAccount = req.params.id
+
+    const list = await listRecruitersbyIDModel(idAccount)
+    if (list.length) {
+      res.status(201).send({
+        success: true,
+        message: 'Data Recruiters',
         data: list
       })
     } else {

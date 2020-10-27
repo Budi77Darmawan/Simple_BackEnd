@@ -60,7 +60,7 @@ module.exports = {
           const idAccount = checkAccount[0].id_account
           const { name, roleAccount, email, status } = checkAccount[0]
           let payload = { idAccount, name, roleAccount, email, status }
-          const token = jwt.sign(payload, process.env.KEY_JWT, { expiresIn: '1d' })
+          const token = jwt.sign(payload, process.env.KEY_JWT, { expiresIn: '10d' })
           payload = { ...payload, token }
           response.status(201).send({
             success: true,

@@ -27,7 +27,7 @@ module.exports = {
         order += ' ASC'
       }
 
-      db.query(`SELECT P.id_project, A.id_account, A.name, R.position, R.companyName, R.city, P.name AS name_project, P.description, P.deadline FROM account AS A INNER JOIN recruiters AS R ON A.id_account = R.id_account INNER JOIN project AS P ON R.id_account = P.id_account WHERE ${searchKey} LIKE '%${searchValue}%' ${order} LIMIT ${limit} OFFSET ${offset} `, (error, result) => {
+      db.query(`SELECT P.id_project, A.id_account, A.name, R.position, R.companyName, R.city, P.name AS name_project, P.description,P.image, P.deadline FROM account AS A INNER JOIN recruiters AS R ON A.id_account = R.id_account INNER JOIN project AS P ON R.id_account = P.id_account WHERE ${searchKey} LIKE '%${searchValue}%' ${order} LIMIT ${limit} OFFSET ${offset} `, (error, result) => {
         if (!error) {
           resolve(result)
         } else {

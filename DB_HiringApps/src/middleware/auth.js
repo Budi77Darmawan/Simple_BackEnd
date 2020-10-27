@@ -14,6 +14,7 @@ module.exports = {
           })
         } else {
           if (result.roleAccount === 'Recruiters' || result.roleAccount === 'Superuser') {
+            console.log('AUTH RECRUITERS SUCCESS')
             next()
           } else {
             response.status(403).send({
@@ -42,6 +43,7 @@ module.exports = {
           })
         } else {
           if (result.roleAccount === 'Freelancers' || result.roleAccount === 'Superuser') {
+            console.log('AUTH FREELANCERS SUCCESS')
             next()
           } else {
             response.status(403).send({
@@ -69,6 +71,7 @@ module.exports = {
             message: error.message
           })
         } else {
+          console.log('AUTH SUCCESS')
           next()
         }
       })

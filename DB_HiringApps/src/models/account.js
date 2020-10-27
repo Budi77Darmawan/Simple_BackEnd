@@ -32,8 +32,6 @@ module.exports = {
   },
   updateAccountModel: (idAccount, data) => {
     return new Promise((resolve, reject) => {
-      console.log(idAccount)
-      console.log(data)
       db.query(`UPDATE account SET ${data}, updateAt=CURRENT_TIMESTAMP WHERE id_account=${idAccount}`, (error, result) => {
         if (!error) {
           resolve(result)

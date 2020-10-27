@@ -1,10 +1,14 @@
 const {
   checkExperienceModel,
   listExperienceModel,
+  listExperienceByIDModel,
   createExperienceModel,
   updateExperienceModel,
   deleteExperienceModel
 } = require('../models/experience')
+
+const jwt = require('jsonwebtoken')
+require('dotenv')
 
 module.exports = {
   listExperience: async (req, res) => {
@@ -16,7 +20,7 @@ module.exports = {
       searchKey = Object.keys(search)[0]
       serachValue = Object.values(search)[0]
     } else {
-      searchKey = 'P.name'
+      searchKey = 'companyName'
       serachValue = search || ''
     }
 
@@ -48,9 +52,62 @@ module.exports = {
     }
   },
 
+  listExperienceByID: async (req, res) => {
+    const idAccount = req.params.id
+    let { page, limit, search, sort, typeSort } = req.query
+
+    let { searchKey, serachValue } = ''
+
+    if (typeof search === 'object') {
+      searchKey = Object.keys(search)[0]
+      serachValue = Object.values(search)[0]
+    } else {
+      searchKey = 'companyName'
+      serachValue = search || ''
+    }
+
+    if (!limit) {
+      limit = 10
+    } else {
+      limit = parseInt(limit)
+    }
+    if (!page) {
+      page = 1
+    } else {
+      page = parseInt(page)
+    }
+
+    const offset = (page - 1) * limit
+
+    const list = await listExperienceByIDModel(searchKey, serachValue, sort, typeSort, limit, offset, idAccount)
+    if (list.length) {
+      res.status(201).send({
+        success: true,
+        message: 'List Experience',
+        data: list
+      })
+    } else {
+      res.send({
+        success: true,
+        message: 'There is no List Expereince'
+      })
+    }
+  },
+
   createExperience: async (req, res) => {
     try {
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const setData = {
         id_account: idAccount,
         ...req.body
@@ -58,7 +115,7 @@ module.exports = {
       await createExperienceModel(setData)
       res.status(201).send({
         success: true,
-        message: `Experience account id ${idAccount} has been created!`,
+        message: 'Experience has been created!',
         data: setData
       })
     } catch (error) {
@@ -72,7 +129,18 @@ module.exports = {
   updateExperience: async (req, res) => {
     try {
       const idExp = req.params.id
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const setData = {
         ...req.body
       }
@@ -104,7 +172,18 @@ module.exports = {
   deleteExperience: async (req, res) => {
     try {
       const idExp = req.params.id
-      const { idAccount } = req.query
+      let idAccount = ''
+      const token = req.headers.authorization.split(' ')[1]
+      jwt.verify(token, process.env.KEY_JWT, (error, result, response) => {
+        if ((error && error.name === 'JsonWebTokenError') || (error && error.name === 'TokenExpiredError')) {
+          response.status(403).send({
+            success: false,
+            message: error.message
+          })
+        } else {
+          idAccount = result.idAccount
+        }
+      })
       const project = await checkExperienceModel(idAccount, idExp)
       if (project.length) {
         await deleteExperienceModel(idExp)

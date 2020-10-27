@@ -36,6 +36,30 @@ module.exports = {
       })
     })
   },
+  listExperienceByIDModel: (searchKey, searchValue, sort, typeSort, limit, offset, idAccount) => {
+    return new Promise((resolve, reject) => {
+      let order = ''
+      if (sort) {
+        order = `ORDER BY ${sort}`
+      } else {
+        order = 'ORDER BY start'
+      }
+      if (typeSort) {
+        order += ` ${typeSort}`
+      } else {
+        order += ' DESC'
+      }
+
+      db.query(`SELECT * FROM work_exp WHERE ${searchKey} LIKE '%${searchValue}%' && id_account = ${idAccount} ${order} LIMIT ${limit} OFFSET ${offset} `, (error, result) => {
+        if (!error) {
+          resolve(result)
+        } else {
+          reject(new Error(error))
+        }
+      })
+    })
+  },
+
   createExperienceModel: (data) => {
     return new Promise((resolve, reject) => {
       db.query('INSERT INTO work_exp SET ?', data, (error, result) => {
